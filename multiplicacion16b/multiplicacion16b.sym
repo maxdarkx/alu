@@ -1,0 +1,36 @@
+//Symbol Name		Page Address
+//----------------	------------
+//	MULT2x                  3059
+//	SHIFTL                  3082
+//	SHIFTR                  307B
+//	XOR                     3047
+//	addon                   3044
+//	bias                    3045
+//	bitmask                 307A
+//	es                      303F
+//	guarXOR3                3055
+//	guarXOR4                3056
+//	guarXOR5                3057
+//	guarXOR6                3058
+//	guarmt22                3074
+//	guarmt24                3075
+//	guarmt25                3076
+//	guarmt26                3077
+//	guarshiftl              3088
+//	guarshiftr              3081
+//	guarx1                  3078
+//	guarx2                  3079
+//	mant                    3046
+//	masc10                  302A
+//	mascb22                 3043
+//	masce                   3041
+//	mascm                   3042
+//	mascs                   3040
+//	mult2x1                 3067
+//	na                      303C
+//	nb                      303D
+//	not_over                306D
+//	op_shiftL               3083
+//	op_shiftr               307C
+//	result1                 3034
+//	stt                     303E
