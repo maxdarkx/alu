@@ -73,7 +73,8 @@ masc10	add r4,r0,#0	;si el bit 22 es un cero, necesito correr el dato que hay en
 		st r0, mant
 		
 		and r0,r4,r5	;pongo en r4 el ultimo bit de r3
-		add r2,r2,#9 	;debo correr el dato 10 veces a la derecha
+		and r2,r2,#0
+		add r2,r2,#9 	;debo correr el dato 9 veces a la derecha
 		jsr SHIFTR
 		ld r1,mant
 		add r0,r0,r1	;sumo el ultimo bit de r3, en r0 (r3 era el pedazo final de la mantisa, r0 el pedazo inicial)
