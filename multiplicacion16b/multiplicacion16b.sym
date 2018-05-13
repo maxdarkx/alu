@@ -1,7 +1,7 @@
 //Symbol Name		Page Address
 //----------------	------------
 //	MULT2x                  305E
-//	SHIFTL                  3087
+//	SHIFTL                  3098
 //	SHIFTR                  3080
 //	XOR                     304C
 //	bias                    304A
@@ -15,8 +15,10 @@
 //	guarmt24                307A
 //	guarmt25                307B
 //	guarmt26                307C
-//	guarshiftl              308D
-//	guarshiftr              3086
+//	guarshiftl              309E
+//	guarsr1                 3095
+//	guarsr2                 3096
+//	guarsr3                 3097
 //	guarx1                  307D
 //	guarx2                  307E
 //	mant                    304B
@@ -29,7 +31,8 @@
 //	na                      3042
 //	nb                      3043
 //	not_over                3072
-//	op_shiftL               3088
-//	op_shiftr               3081
+//	op_shiftL               3099
 //	result1                 303A
+//	shiftr1                 3086
+//	step                    308C
 //	stt                     3044

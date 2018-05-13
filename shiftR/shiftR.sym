@@ -1,0 +1,11 @@
+//Symbol Name		Page Address
+//----------------	------------
+//	SHIFTR                  300A
+//	guarsr1                 301F
+//	guarsr2                 3020
+//	guarsr3                 3021
+//	num                     3007
+//	shiftr1                 3010
+//	sol                     3009
+//	step                    3016
+//	times                   3008
