@@ -1,0 +1,13 @@
+//Symbol Name		Page Address
+//----------------	------------
+//	SHIFTLX                 3008
+//	despl                   3007
+//	guarsx2                 3021
+//	guarsx4                 3022
+//	guarsx5                 3023
+//	guarsx6                 3024
+//	mascb12                 3025
+//	num1                    3006
+//	op_shiftLx              3014
+//	zero                    301A
+//	zeros                   3020

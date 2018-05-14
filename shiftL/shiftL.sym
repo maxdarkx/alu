@@ -1,11 +1,14 @@
 //Symbol Name		Page Address
 //----------------	------------
 //	ShiftL                  3008
-//	consa                   301A
-//	consb                   3011
-//	guarsl1                 3027
-//	guarsl2                 3028
-//	guarsl3                 3029
-//	guarsl4                 302A
-//	neg                     301C
-//	zero                    3019
+//	consa                   301B
+//	consb                   3012
+//	despl                   3007
+//	guarsl1                 3028
+//	guarsl2                 3029
+//	guarsl3                 302A
+//	guarsl4                 302B
+//	neg                     301D
+//	num1                    3006
+//	zero                    301A
+//	zeros                   301F

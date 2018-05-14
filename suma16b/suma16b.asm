@@ -28,18 +28,25 @@
 		and r2,r4,r5	; saco el exponente de n2, guardo en r2
 		not r2,r2 		; niego el exponente del segundo para la diferencia
 		add r2,r2,#1
-		add r3,r1,r2 	;calculo la diferencia
+		add r2,r1,r2 	; calculo la diferencia
 
-		st r3,diffe		;guardo la diferencia para futuras instancias
-		ld r5,masc15	;mascara para sacar el bit 15
-		and r5,r3,r5	;sacamos el bit 15
-		brz maxb		;branch para calculo del max
-		not r3,r3		;si el bit 15 es 1, niego diffe
-		add r3,r3,#1
-maxb	st r3, max
+		st r2,diffe		; guardo la diferencia para futuras instancias
+		ld r5,masc15	; mascara para sacar el bit 15
+		and r5,r2,r5	; sacamos el bit 15
+		
+		brz maxb		; branch para calculo del max
+		not r2,r2		; si el bit 15 es 1, niego diffe
+		add r2,r2,#1
+maxb	st r2, max
+		add r6,r5,#0	; guardo el bit 15 de diffe, importante mas adelante
+		brz shifting	; segun el bit 15 de diffe, corro la mantisa max veces hacia la izquierda
+		
 
-
-
+		ld r5, mascm	; cargo la mascara para la mantisa
+		and r1,r3,r5	; saco la mantisa de n1, guardo en r1
+		ld r5, mascb11	; cargo la mascara para el bit 11
+		add r1,r5,#0	; agrego el bit adicional a la mantisa de NA
+ 		jsr SHIFTLX		; corro
 
 
 
@@ -71,6 +78,7 @@ halt
 	mascs  .fill x8000	;1000000000000000 mascara para el signo
 	masce  .fill x7C00	;0111110000000000 mascara para el exponente
 	mascm  .fill x03ff	;0000001111111111 mascara para la mantisa
+	mascb11 .fill x0400	;0000010000000000 mascara para el bit 11
 	masc15 .fill x4000 	;0100000000000000 mascara para el bit 15
 	bias   .fill x3c00 	;0011110000000000 bias
 ;_________________________________________________________________________
@@ -157,5 +165,60 @@ op_shiftL	add r0,r0,r1 		; se multiplica el valor guardado en r1 por 10(bin)
 RET
 			guarshiftl .blkw 1
 ;______________________________________________________________________________________
+
+;______________________________________________________________________________________
+
+;______________________________SHIFTL__________________________________________________
+;operacion para mover cadenas de 11 bits  a la izquierda con carry de 11bits
+
+SHIFTLX	st r4, guarslX1
+		st r5, guarslX2
+		st r6, guarslX3
+		st r2, guarslX4
+		
+		and r4,r4,#0 ;inicializo r4, r5 y r6 por seguridad
+		and r5,r5,#0
+		and r6,r6,#0
+
+		add r3,r1,#0; variables de control del ciclo=r3 y r5
+		brz zeros   ;si lo que ingreso es cero, ya termine	
+		add r5,r1,#0
+
+consb	add r3,r3,r3	;r3 dato desplazado
+		add r4,r4,r4	;r4 carry de 16 bits
+		
+		add r0,r3,#0
+		not r0,r0
+		add r0,r0,#1		
+		brz zero
+		add r6,r0,r5 ;verificar validez para numeros negativos, de lo contrario convertir
+	  	brn consa
+zero	add r4,r4,#1
+consa	and r5,r5,#0
+		
+	  	add r5,r3,#0
+
+neg		add r2,r2,#-1
+		brp consb
+
+zeros	and r0,r0,#0
+		add r0,r0,r3
+
+		and r3,r3,#0
+		add r3,r3,r4
+		ld r4, guarslX1
+		ld r5, guarslX2
+		ld r6, guarslX3
+		ld r2, guarslX4
+		ret
+
+		guarslX1 .blkw 1
+		guarslX2 .blkw 1
+		guarslX3 .blkw 1
+		guarslX4 .blkw 1
+
+
+
+
 .end
 ;_____________________________________________________________________

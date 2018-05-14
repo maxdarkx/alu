@@ -1,17 +1,17 @@
 .orig x3000
 
 ;shiftl test
-	and r1,r1,#0 ;guarda datos en ro(solucion), r1(numero),r2(cantidad de rotaciones),r3(carry de 16bits)
-	add r1,r1,xFfff
+	ld r1, num1 	;guarda datos en ro(solucion), r1(numero)
+	ld r2, despl	;,r2(cantidad de rotaciones),r3(carry de 16bits)
 
-;	and r2,r2,#0
-;	add r2,r2,#2
+	and r3,r3,#0
+	and r4,r4,#0
 
-;	and r3,r3,#0
-;	and r4,r4,#0
+	jsr ShiftL
+	halt	
 
-;	jsr ShiftL
-;	halt	
+	num1 .fill x04bb
+	despl .fill x5
 
 ShiftL		st r4, guarsl1
 		st r5, guarsl2
