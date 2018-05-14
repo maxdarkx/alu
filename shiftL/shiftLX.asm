@@ -13,9 +13,10 @@
 	num1 .fill x04bb
 	despl .fill x5
 
-SHIFTLX		st r2, guarsx2
-			st r4, guarsx4
-			st r5, guarsx5
+SHIFTLX		st r2, guarlx2
+			st r4, guarlx4
+			st r5, guarlx5
+			st r6, guarlx6
 						
 			and r0,r0,#0
 			and r4,r4,#0 	;inicializo r4, r5 y r6 por seguridad
@@ -42,14 +43,15 @@ zero		add r2,r2,#-1		; se corre tantas veces hacia la izquierda como lo
 								; multiplicando por 10(bin)
 				
 			add r3,r4,#0		;el carry estara en r3		
-			ld r2, guarsx2 		;R0 es el resultado del programa , r1 es el operando,
-			ld r4, guarsx4 		;R2 son los desplazamientos, r3 es el carry (12b)
-			ld r5, guarsx5
+			ld r2, guarlx2 		;R0 es el resultado del programa , r1 es el operando,
+			ld r4, guarlx4 		;R2 son los desplazamientos, r3 es el carry (12b)
+			ld r5, guarlx5
+			ld r6, guarlx6
 zeros
 RET
-			guarsx2 .BLKW 1
-			guarsx4 .BLKW 1
-			guarsx5 .BLKW 1
-			guarsx6 .BLKW 1
+			guarlx2 .BLKW 1
+			guarlx4 .BLKW 1
+			guarlx5 .BLKW 1
+			guarlx6 .BLKW 1
 			mascb12 .fill x0800	;0000100000000000 mascara para el bit 12
 .end

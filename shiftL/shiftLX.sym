@@ -2,12 +2,12 @@
 //----------------	------------
 //	SHIFTLX                 3008
 //	despl                   3007
-//	guarsx2                 3021
-//	guarsx4                 3022
-//	guarsx5                 3023
-//	guarsx6                 3024
-//	mascb12                 3025
+//	guarlx2                 3023
+//	guarlx4                 3024
+//	guarlx5                 3025
+//	guarlx6                 3026
+//	mascb12                 3027
 //	num1                    3006
-//	op_shiftLx              3014
-//	zero                    301A
-//	zeros                   3020
+//	op_shiftLx              3015
+//	zero                    301B
+//	zeros                   3022
