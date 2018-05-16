@@ -12,20 +12,23 @@
 		and r5,r5,#0
 		and r6,r6,#0
 
-		ld r3, na		; multiplicador de 16 bits
-		ld r4, nb		; multiplicando de 16 bits
+		ld r3, na		; sumando de 16 bits
+		ld r4, nb		; sumando de 16 bits
 		and r1,r1,x0 	; signo1	
 		and r2,r2,x0 	; signo2
 		ld r5,mascs  	; mascara para el signo
 		and r1,r5,r3 	; almaceno el signo en r1 y r2 para xor
 		and r2,r5,r4
-;	
+		st r1,sa 		;guardo los signos de a y de b para comodidad
+		st r2,sb
 		jsr XOR			; ejecutamos la operacion
 		st r0, stt		; guardo la xor en la posicion stt
 
 		ld r5,masce		; cargo la mascara para sacar el exponente
 		and r1,r3,r5	; saco el exponente de n1, guardo en r1
 		and r2,r4,r5	; saco el exponente de n2, guardo en r2
+		st r1,ea
+		st r2,eb
 		not r2,r2 		; niego el exponente del segundo para la diferencia
 		add r2,r2,#1
 		add r2,r1,r2 	; calculo la diferencia
@@ -38,46 +41,134 @@
 		not r2,r2		; si el bit 15 es 1, niego diffe
 		add r2,r2,#1
 maxb	st r2, max
-		add r6,r5,#0	; guardo el bit 15 de diffe, importante mas adelante
-		brz shifting	; segun el bit 15 de diffe, corro la mantisa max veces hacia la izquierda
-		
+		st r5,diffe15	; guardo el bit 15 de diffe, importante mas adelante
+		add r6,r3,#0
+		ld r5, mascm	; cargo la mascara para la mantisa
+		and r1,r6,r5	; saco la mantisa de n1, guardo en r1
+		ld r5, mascb11	; cargo la mascara para el bit 11
+		add r1,r5,r1	; agrego el bit adicional a la mantisa de NA
+		add r3,r1,#0
+		and r0,r0,#0
+		ld r5,diffe15	; segun el bit de diffe15, calculo el desplazamiento a la izquierda
+		brz na_shifting	; segun el bit 15 de diffe, corro la mantisa max veces hacia la izquierda
+		jsr SHIFTLX		; corro hacia la izquierda max veces la mantisa
+						;r1 dato, r2 corrimientos, r3 y r0 solucion
+
+
+na_shifting	
+		st r3,aa1
+		st r0,aa2
 
 		ld r5, mascm	; cargo la mascara para la mantisa
-		and r1,r3,r5	; saco la mantisa de n1, guardo en r1
+		and r1,r4,r5	; saco la mantisa de n2, guardo en r1
 		ld r5, mascb11	; cargo la mascara para el bit 11
-		add r1,r5,#0	; agrego el bit adicional a la mantisa de NA
-shifting	jsr SHIFTLX		; corro
+		add r1,r5,r1	; agrego el bit adicional a la mantisa de NA
+		add r3,r1,#0
+		and r0,r0,#0
+		ld r5,diffe15	; guardo el bit 15 de diffe, importante mas adelante
+		brz nb_shifting	; segun el bit 15 de diffe, corro la mantisa max veces hacia la izquierda
+		jsr SHIFTLX		; corro hacia la izquierda max veces la mantisa
 
+nb_shifting	st r3,ab1
+			st r0,ab2
 
+			ld r1,aa1
+			ld r2,aa2
 
+			not r0,r0 		;calculo sum en sus dos partes
+			add r0,r0,#1
+			add r0,r1,r0
+			st r0, sum
 
+			not r2,r2
+			add r2,r2,#1
+			add r3,r3,r2
+			lea r0,sum
+			str r3,r0,#1
 
+			ld r4, diffe15 ;saco todas las variables necesarias para el if
+			ld r6,diffe
+			ld r5,stt	; si el signo de la xor es positivo salta a sum1
+			brz sum1
+				add r6,r6,#0	
+				brz case1 ;diffe ="000000000..."
+					add r4,r4,#0
+					brp case2
+case_diffe1				ld r0,ab1
+						ld r1,aa1
+						ld r3,ab2
+						ld r2,aa2
 
+						not r1,r1 		;calculo sum en sus dos partes
+						add r1,r1,#1
+						add r0,r1,r0
+						st r0, sum
 
+						not r3,r3
+						add r3,r3,#1
+						add r3,r3,r2
+						lea r0,sum
+						str r3,r0,#1					
+						brnzp sum2
 
+case1 					lea	r0,sum			
+						ldr r2,r0,#1
+						ldr r1,r0,#0
+						brn case_diffe1
 
+sum1		ld r1,sum
+			ld r5, mascb12
+			and r0,r1,r5
+			brz case2
+			ld r4,masc15 	;r4 sera ac=1 para el esquema
+			st r1,mr 		;verificar si hay que correrla a la izquierda
+			BRnzp case3			
 
-
-
-
-
-
+case2		and r4,r4,#0 	;r4 sera ac=0 para el esquema
+			and r2,r2,#0
+			add r2,r2,#1
+			 		
+			jsr SHIFTLX ;mover la suma a la izquierda una vez
+			st r1,mr
+case3		ld r5,diffe15
+			brz case4
+			ld r0,ea
+			BRnzp et
+case4		ld r0,eb
+et			add r0,r0,r4
+			
+sum2			st r0,ET
 
 
 halt
 ;espacios reservados en memoria y constantes utilizadas
 ;________________________________________________________________________
-	na .fill x58F8 ; 159=0101100011111000 = x58F8
-	nb .fill x4400 ; 4 = 0100010000000000 = x4400
-	stt .blkw 1			;signo del resultado
-	es  .blkw 1			;exponente del resultado	
+	na .fill x51A0 ; 159=0101100011111000 = x58F8 primer numero
+	nb .fill x4F40 ; 4 = 0100010000000000 = x4400 segundo numero
+	sa .blkw 1 		;signo del primer numero
+	sb .BLKW 1		;signo del segundo numero
+	ea .blkw 1 		;exponente del primer numero
+	eb .BLKW 1		;exponente del segundo numero
+	ma .BLKW 1 		;mantisa del primer numero
+	mb .BLKW 1 		;mantisa del segundo numero
+
+	aa1 .blkw 1		;parte 1 de la operacion para a
+	aa2 .blkw 1		;parte 2 de la operacion para a
+	ab1 .blkw 1		;parte 2 de la operacion para b
+	ab2 .blkw 1		;parte 2 de la operacion para b
+	stt .blkw 1		;signo del resultado
+	sum .blkw 2		;sum[2]={aa1-ab1,aa2-ab2}. si aa<ab resta al reves
+	es  .blkw 1		;exponente del resultado	
 	mant  .blkw 1		;mantisa del resultado
+	mr .blkw 1			;MR mantisa temporal, hay que ajustarla
+	ET .blkw 1			;exponente total
 
 	diffe  .blkw 1 		;espacio para la diferencia entre exponentes
+	diffe15  .blkw 1 	;bit 15 de diffe
 	max  .blkw 1 		;espacio la variable max
 	mascs  .fill x8000	;1000000000000000 mascara para el signo
 	masce  .fill x7C00	;0111110000000000 mascara para el exponente
-	mascm  .fill x03ff	;0000001111111111 mascara para la mantisa
+	mascm  .fill x03FF	;0000001111111111 mascara para la mantisa
 	mascb11 .fill x0400	;0000010000000000 mascara para el bit 11
 	mascb12 .fill x0800	;0000100000000000 mascara para el bit 12
 	masc15 .fill x4000 	;0100000000000000 mascara para el bit 15
@@ -85,7 +176,8 @@ halt
 ;_________________________________________________________________________
 ;
 ;_______________________________funciones______________________________
-;
+
+
 ;_________________________________XOR___________________________________
 ;los operandos se encuentran en r1 y r2
 ; el resultado estara en r0
@@ -169,17 +261,18 @@ RET
 
 ;______________________________________________________________________________________
 
-;______________________________SHIFTL__________________________________________________
+;______________________________SHIFTLX__________________________________________________
 ;operacion para mover cadenas de 11 bits  a la izquierda con carry de 11bits
 ;_____________________________________________________________________
 
 
-	SHIFTLX		st r2, guarlx2	; guarda datos en ro(solucion), r1(numero a desplazar),
+	SHIFTLX		st r2, guarlx2	; guarda datos en r0(solucion), r1(numero a desplazar),
 			st r4, guarlx4		; r2(cantidad de desplazamientos),r3(carry de 16bits)
 			st r5, guarlx5
 			st r6, guarlx6
 						
 			and r0,r0,#0
+			and r3,r3,#0
 			and r4,r4,#0 		;inicializo r4, r5 y r6 por seguridad
 			and r5,r5,#0
 			ld r5,mascb12		;cargo la mascara del bit 12
