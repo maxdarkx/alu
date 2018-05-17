@@ -65,9 +65,9 @@ na_shifting
 		add r1,r5,r1	; agrego el bit adicional a la mantisa de NA
 		add r3,r1,#0
 		and r0,r0,#0
-		ld r5,diffe15	; guardo el bit 15 de diffe, importante mas adelante
+		ld r5,diffe15	; cargo el bit 15 de diffe, para el branch
 		brz nb_shifting	; segun el bit 15 de diffe, corro la mantisa max veces hacia la izquierda
-		jsr SHIFTLX		; corro hacia la izquierda max veces la mantisa
+			jsr SHIFTLX		; corro hacia la izquierda max veces la mantisa
 
 nb_shifting	st r3,ab1
 			st r0,ab2
@@ -75,70 +75,96 @@ nb_shifting	st r3,ab1
 			ld r1,aa1
 			ld r2,aa2
 
-			not r0,r0 		;calculo sum en sus dos partes
-			add r0,r0,#1
-			add r0,r1,r0
-			st r0, sum
-
-			not r2,r2
-			add r2,r2,#1
-			add r3,r3,r2
-			lea r0,sum
-			str r3,r0,#1
-
 			ld r4, diffe15 ;saco todas las variables necesarias para el if
 			ld r6,diffe
-			ld r5,stt	; si el signo de la xor es positivo salta a sum1
+			ld r5,stt	; si el signo de la xor es positivo salta a sum1(suma de dos numeros de igual signo)
 			brz sum1
+
+				not r3,r3
+				add r3,r3,#1
+				not r0,r0
+				add r0,r0,#1
+				add r2,r2,r0 	;aa2-ab2
+				add r1,r1,r3 	;aa1-ab1
+				lea r4, sum
+				str r1,r4
+				str r2,r4,#1
+
+				ld r4, diffe15
 				add r6,r6,#0	
-				brz case1 ;diffe ="000000000..."
+				brz case_diffe1 ;diffe ="000000000..."
 					add r4,r4,#0
-					brp case2
-case_diffe1				ld r0,ab1
-						ld r1,aa1
-						ld r3,ab2
-						ld r2,aa2
+					brz sum2
 
-						not r1,r1 		;calculo sum en sus dos partes
+case_diffe1				not r1,r1
 						add r1,r1,#1
-						add r0,r1,r0
-						st r0, sum
+						not r2,r2
+						add r2,r2,#1
+						add r2,r2,r0 	;ab2-aa2
+						add r1,r1,r3 	;ab1-aa1
+						lea r4, sum
+						str r1,r4
+						str r2,r4,#1
+				brnzp sum2
+					
+sum1		add r1,r1,r3 ;calculo sum en sus dos partes 
+			st r1, sum 	;aa1+ab1 primera parte de sum
 
-						not r3,r3
-						add r3,r3,#1
-						add r3,r3,r2
-						lea r0,sum
-						str r3,r0,#1					
-						brnzp sum2
+			add r2,r2,r0 	;aa2+ab2 (mas significativa)
+			lea r0,sum
+			str r3,r0,#1 ;segunda parte de sum
 
-case1 					lea	r0,sum			
-						ldr r2,r0,#1
-						ldr r1,r0,#0
-						brn case_diffe1
-
-sum1		ld r1,sum
 			ld r5, mascb12
-			and r0,r1,r5
-			brz case2
-			ld r4,masc15 	;r4 sera ac=1 para el esquema
-			st r1,mr 		;verificar si hay que correrla a la izquierda
-			BRnzp case3			
+			and r0,r3,r5
+			brz case2		;cero indica no overflow, 1 indica overflow
+				ld r4,mascb11 	;r4 sera ac=1 para el esquema
+				st r2,mr 		;verificar si hay que correrla a la izquierda
+				BRnzp case3			
 
-case2		and r4,r4,#0 	;r4 sera ac=0 para el esquema
+case2		ld r1, sum
+			and r4,r4,#0 	;r4 sera ac=0 para el esquema
 			and r2,r2,#0
 			add r2,r2,#1
 			 		
 			jsr SHIFTLX ;mover la suma a la izquierda una vez
-			st r1,mr
+			st r3,mr
 case3		ld r5,diffe15
 			brz case4
 			ld r0,ea
 			BRnzp et
 case4		ld r0,eb
 et			add r0,r0,r4
-			
-sum2			st r0,ET
+			st r0,ET
+			brnzp exit
+sum2	lea r6,sum;recorro cada posicion de sum para verificar desde donde empieza el dato
+		ldr r1,r6,#0	;r1 es la primera parte de la suma
+		and r2,r2,#0
+		add r2,r2,#1	;cuantas veces se desplazara a la izquierda
+		ldr r3,r6,#1	;r3 es la segunda parte de la suma
+		and r4,r4,#0	;cuantas veces he ejecutado corrimientos?
 
+		ld r5,mascb11
+cero1	jsr SHIFTL 
+		add r1,r0,#0	;guardo en r1 la salida del algoritmo para loop
+		add r4,r4,#1
+		add r6,r4,#-11
+		brz listo
+		and r0,r0,r5	;si hay un 1, me salgo del algoritmo
+		brz cero1
+		;realizar los corrimientos a la derecha y sumarlos con r1
+		;y probar si si funciona hasta aqui
+
+
+
+
+		st r1,mr
+listo	lea r2,sum
+		ldr r6,r2,#1
+		st r6,mr
+
+
+
+exit
 
 halt
 ;espacios reservados en memoria y constantes utilizadas
@@ -248,6 +274,7 @@ RET
 ;______________________________SHIFTL__________________________________________________
 ;operacion para mover cadenas de bits  a la izquierda
 SHIFTL		st r2, guarshiftl	; se guarda el dato en r2
+			and r0,r0,#0
 op_shiftL	add r0,r0,r1 		; se multiplica el valor guardado en r1 por 10(bin)
 			add r2,r2,#-1		; se corre tantas veces hacia la izquierda como lo
 								; indique R2
