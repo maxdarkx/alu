@@ -24,8 +24,8 @@
 		jsr XOR			; ejecutamos la operacion
 		st r0, stt		; guardo la xor en la posicion stt
 
-		ld r5,masce		; cargo la mascara para sacar el exponente
-		and r1,r3,r5	; saco el exponente de n1, guardo en r1
+		ld r5,masce		; cargo la mascara para sacar el exponente (bit 16)
+		and r1,r3,r5	; saco el exponente de n1, guardo en r1 
 		and r2,r4,r5	; saco el exponente de n2, guardo en r2
 		st r1,ea
 		st r2,eb
@@ -34,7 +34,7 @@
 		add r2,r1,r2 	; calculo la diferencia
 
 		st r2,diffe		; guardo la diferencia para futuras instancias
-		ld r5,masc15	; mascara para sacar el bit 15
+		ld r5,masc15	; mascara para sacar el bit 15 diffe(5)
 		and r5,r2,r5	; sacamos el bit 15
 		
 		brz maxb		; branch para calculo del max
@@ -44,12 +44,13 @@ maxb	st r2, max
 		st r5,diffe15	; guardo el bit 15 de diffe, importante mas adelante
 		add r6,r3,#0
 		ld r5, mascm	; cargo la mascara para la mantisa
-		and r1,r6,r5	; saco la mantisa de n1, guardo en r1
+		and r1,r6,r5	; saco la mantisa de na, guardo en r1
 		ld r5, mascb11	; cargo la mascara para el bit 11
 		add r1,r5,r1	; agrego el bit adicional a la mantisa de NA
 		add r3,r1,#0
+		st r1,ma 		;guardo la mantisa de a('1'& mantisa(na) )
 		and r0,r0,#0
-		ld r5,diffe15	; segun el bit de diffe15, calculo el desplazamiento a la izquierda
+		ld r5,diffe15	; segun el bit de diffe(5), calculo el desplazamiento a la izquierda
 		brz na_shifting	; segun el bit 15 de diffe, corro la mantisa max veces hacia la izquierda
 		jsr SHIFTLX		; corro hacia la izquierda max veces la mantisa
 						;r1 dato, r2 corrimientos, r3 y r0 solucion
@@ -64,6 +65,7 @@ na_shifting
 		ld r5, mascb11	; cargo la mascara para el bit 11
 		add r1,r5,r1	; agrego el bit adicional a la mantisa de NA
 		add r3,r1,#0
+		st r1,mb 		; guardo la mantisa de nb
 		and r0,r0,#0
 		ld r5,diffe15	; cargo el bit 15 de diffe, para el branch
 		brz nb_shifting	; segun el bit 15 de diffe, corro la mantisa max veces hacia la izquierda
@@ -87,7 +89,7 @@ nb_shifting	st r3,ab1
 				add r2,r2,r0 	;aa2-ab2
 				add r1,r1,r3 	;aa1-ab1
 				lea r4, sum
-				str r1,r4
+				str r1,r4,#0
 				str r2,r4,#1
 
 				ld r4, diffe15
@@ -144,27 +146,64 @@ sum2	lea r6,sum;recorro cada posicion de sum para verificar desde donde empieza 
 		and r4,r4,#0	;cuantas veces he ejecutado corrimientos?
 
 		ld r5,mascb11
-cero1	jsr SHIFTL 
+busca1	jsr SHIFTL 
 		add r1,r0,#0	;guardo en r1 la salida del algoritmo para loop
-		add r4,r4,#1
+		add r4,r4,#1	;cuantas veces he realizado corrimientos?
 		add r6,r4,#-11
-		brz listo
+		brz busca2
 		and r0,r0,r5	;si hay un 1, me salgo del algoritmo
-		brz cero1
-		;realizar los corrimientos a la derecha y sumarlos con r1
-		;y probar si si funciona hasta aqui
+		brz busca1
+		st r4,despl
+		brp listo
 
+busca2	add r1,r3,#0
+busca2a jsr SHIFTL 
+		add r1,r0,#0	;guardo en r1 la salida del algoritmo para loop
+		add r4,r4,#1	;cuantas veces he realizado corrimientos?
+		add r6,r4,#-22
+		brz busca2
+		and r0,r0,r5	;si hay un 1, me salgo del algoritmo
+		brz busca1
+		st r4,despl
+		st r1, mr
+		brnzp exit
 
+listo 	add r2,r1,#0
 
+		not r4,r4
+		add r4,r4,#1
+		add r1,r4,#11 ;averiguo cuantas veces desplazar a la derecha
 
-		st r1,mr
-listo	lea r2,sum
-		ldr r6,r2,#1
-		st r6,mr
+		lea r0,num 		;cargo el numero a desplazar en r0
+		ldr r0,r0,#1
+	    jsr SHIFTR
+	    add r2,r2,r0
+	    st r2,mr
 
+exit  ld r1,mr 		;le quito el bit 11 a mr
+	  ld r2,mascb11
+	  not r2,r2
+	  add r2,r2,#1
+	  add r1,r2,r1
+	  st r1,mr
 
+	  ld r1,diffe15
+	  brz expmenos
+	  	ld r1,eb		;le resto los desplazamientos al exponente correspondiente
+	  	ld r2 despl 	; y lo guardo en et
+	  	not r2,r2
+	  	add r2,r2,#1
+	  	add r1,r1,r2
+	  	brnzp fin_sr
+expmenos 
+		ld r1,ea 		
+	  	ld r2 despl
+	  	not r2,r2
+	  	add r2,r2,#1
+	  	add r1,r1,r2
+	  	
+fin_sr  st r1,et
 
-exit
 
 halt
 ;espacios reservados en memoria y constantes utilizadas
@@ -180,15 +219,16 @@ halt
 
 	aa1 .blkw 1		;parte 1 de la operacion para a
 	aa2 .blkw 1		;parte 2 de la operacion para a
-	ab1 .blkw 1		;parte 2 de la operacion para b
+	ab1 .blkw 1		;parte 1 de la operacion para b
 	ab2 .blkw 1		;parte 2 de la operacion para b
 	stt .blkw 1		;signo del resultado
-	sum .blkw 2		;sum[2]={aa1-ab1,aa2-ab2}. si aa<ab resta al reves
+	sum .blkw 2		;sum[2]={+-aa1+-ab1,+-aa2+-ab2}
 	es  .blkw 1		;exponente del resultado	
 	mant  .blkw 1		;mantisa del resultado
 	mr .blkw 1			;MR mantisa temporal, hay que ajustarla
-	ET .blkw 1			;exponente total
-
+	et .blkw 1			;exponente total
+	despl .blkw 1		;cantidad de desplazamientos hechos a la 
+						;izquierda en la suma de mantisas (max 22)
 	diffe  .blkw 1 		;espacio para la diferencia entre exponentes
 	diffe15  .blkw 1 	;bit 15 de diffe
 	max  .blkw 1 		;espacio la variable max
@@ -273,15 +313,17 @@ RET
 
 ;______________________________SHIFTL__________________________________________________
 ;operacion para mover cadenas de bits  a la izquierda
-SHIFTL		st r2, guarshiftl	; se guarda el dato en r2
+;R0 es el resultado del programa y r1 es el operando,
+;R2 es para uso interno; se guarda el dato en r2
+SHIFTL		st r2, guarshiftl	
+
 			and r0,r0,#0
 op_shiftL	add r0,r0,r1 		; se multiplica el valor guardado en r1 por 10(bin)
 			add r2,r2,#-1		; se corre tantas veces hacia la izquierda como lo
 								; indique R2
 			brzp op_shiftL		; mientras que r2 sea zero o positivo, se sigue 	
 								; multiplicando por 10(bin)
-			ld r2, guarshiftl	;R0 es el resultado del programa y r1 es el operando,
-						;		R2 es para uso interno
+			ld r2, guarshiftl	
 RET
 			guarshiftl .blkw 1
 ;______________________________________________________________________________________
