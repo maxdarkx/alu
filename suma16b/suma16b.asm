@@ -25,36 +25,41 @@
 		st r0, stt		; guardo la xor en la posicion stt
 
 		ld r5,masce		; cargo la mascara para sacar el exponente (bit 16)
-		and r1,r3,r5	; saco el exponente de n1, guardo en r1 
-		and r2,r4,r5	; saco el exponente de n2, guardo en r2
-		st r1,ea
-		st r2,eb
-		not r2,r2 		; niego el exponente del segundo para la diferencia
-		add r2,r2,#1
-		add r2,r1,r2 	; calculo la diferencia
+		and r0,r3,r5	; saco el exponente de n1, guardo en r0 
+		and r1,r4,r5	; saco el exponente de n2, guardo en r1
+		st r0,ea
+		st r1,eb
+		not r1,r1 		; niego el exponente del segundo para la diferencia
+		add r1,r1,#1
+		add r1,r1,r0 	; calculo la diferencia
 
-		st r2,diffe		; guardo la diferencia para futuras instancias
+		st r1,diffe		; guardo la diferencia para futuras instancias
 		ld r5,masc15	; mascara para sacar el bit 15 diffe(5)
-		and r5,r2,r5	; sacamos el bit 15
+		and r5,r1,r5	; sacamos el bit 15
 		
 		brz maxb		; branch para calculo del max
-		not r2,r2		; si el bit 15 es 1, niego diffe
-		add r2,r2,#1
-maxb	st r2, max
+		not r1,r1		; si el bit 15 es 1, niego diffe
+		add r1,r1,#1
+maxb	st r1, max
 		st r5,diffe15	; guardo el bit 15 de diffe, importante mas adelante
 		add r6,r3,#0
 		ld r5, mascm	; cargo la mascara para la mantisa
-		and r1,r6,r5	; saco la mantisa de na, guardo en r1
+		and r0,r6,r5	; saco la mantisa de na, guardo en r1
 		ld r5, mascb11	; cargo la mascara para el bit 11
-		add r1,r5,r1	; agrego el bit adicional a la mantisa de NA
-		add r3,r1,#0
-		st r1,ma 		;guardo la mantisa de a('1'& mantisa(na) )
-		and r0,r0,#0
+		add r0,r5,r0	; agrego el bit adicional a la mantisa de NA
+		add r3,r0,#0
+		st r0,ma 		;guardo la mantisa de a('1'& mantisa(na) )
 		ld r5,diffe15	; segun el bit de diffe(5), calculo el desplazamiento a la izquierda
 		brz na_shifting	; segun el bit 15 de diffe, corro la mantisa max veces hacia la izquierda
-		jsr SHIFTLX		; corro hacia la izquierda max veces la mantisa
-						;r1 dato, r2 corrimientos, r3 y r0 solucion
 
+	;se debe mejorar el algoritmo SHIFTR para que permita mover a traves de dos variables, tal como
+	;lo hace el algoritmo SHIFTLX
+	;______________________________________________________________________________________
+
+
+		jsr SHIFTR		; corro hacia la izquierda max veces la mantisa
+						;r1 dato, r2 corrimientos, r3 y r0 solucion
+	;______________________________________________________________________________________
 
 na_shifting	
 		st r3,aa1
@@ -68,8 +73,8 @@ na_shifting
 		st r1,mb 		; guardo la mantisa de nb
 		and r0,r0,#0
 		ld r5,diffe15	; cargo el bit 15 de diffe, para el branch
-		brz nb_shifting	; segun el bit 15 de diffe, corro la mantisa max veces hacia la izquierda
-			jsr SHIFTLX		; corro hacia la izquierda max veces la mantisa
+		brp nb_shifting	; segun el bit 15 de diffe, corro la mantisa max veces hacia la izquierda
+			jsr SHIFTR		; corro hacia la izquierda max veces la mantisa
 
 nb_shifting	st r3,ab1
 			st r0,ab2
