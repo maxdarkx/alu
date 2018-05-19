@@ -105,7 +105,7 @@ case_diffe1				not r1,r1
 						add r2,r2,r0 	;ab2-aa2
 						add r1,r1,r3 	;ab1-aa1
 						lea r4, sum
-						str r1,r4
+						str r1,r4,#0
 						str r2,r4,#1
 				brnzp sum2
 					
@@ -133,10 +133,10 @@ case2		ld r1, sum
 case3		ld r5,diffe15
 			brz case4
 			ld r0,ea
-			BRnzp et
+			BRnzp ets
 case4		ld r0,eb
-et			add r0,r0,r4
-			st r0,ET
+ets 		add r0,r0,r4
+			st r0,et
 			brnzp exit
 sum2	lea r6,sum;recorro cada posicion de sum para verificar desde donde empieza el dato
 		ldr r1,r6,#0	;r1 es la primera parte de la suma
@@ -157,13 +157,15 @@ busca1	jsr SHIFTL
 		brp listo
 
 busca2	add r1,r3,#0
+		ld r3,minus22
+		
 busca2a jsr SHIFTL 
 		add r1,r0,#0	;guardo en r1 la salida del algoritmo para loop
 		add r4,r4,#1	;cuantas veces he realizado corrimientos?
-		add r6,r4,#-22
-		brz busca2
+		add r6,r4,r3
+		brz listo
 		and r0,r0,r5	;si hay un 1, me salgo del algoritmo
-		brz busca1
+		brz busca2a
 		st r4,despl
 		st r1, mr
 		brnzp exit
@@ -174,7 +176,7 @@ listo 	add r2,r1,#0
 		add r4,r4,#1
 		add r1,r4,#11 ;averiguo cuantas veces desplazar a la derecha
 
-		lea r0,num 		;cargo el numero a desplazar en r0
+		lea r0,sum 		;cargo el numero a desplazar en r0
 		ldr r0,r0,#1
 	    jsr SHIFTR
 	    add r2,r2,r0
@@ -238,6 +240,7 @@ halt
 	mascb11 .fill x0400	;0000010000000000 mascara para el bit 11
 	mascb12 .fill x0800	;0000100000000000 mascara para el bit 12
 	masc15 .fill x4000 	;0100000000000000 mascara para el bit 15
+	minus22 .fill #22	;numero 22, dato para resta
 	bias   .fill x3c00 	;0011110000000000 bias
 ;_________________________________________________________________________
 ;
