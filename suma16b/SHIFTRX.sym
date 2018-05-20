@@ -1,13 +1,15 @@
 //Symbol Name		Page Address
 //----------------	------------
 //	SHIFTRX                 3007
-//	mascb1                  302D
-//	mascb11                 302E
-//	mov_carry               301B
-//	not_carry               3018
+//	bitmov                  3017
+//	carry                   3023
+//	carry_mov               3020
+//	mascb1                  3037
+//	mascb11                 3038
+//	mascb12                 3039
 //	num                     3005
-//	numrx                   3027
-//	shiftrx_op              300F
+//	numrx                   3031
+//	shiftrx_op              3012
 //	steprx                  301D
 //	times                   3006
-//	timesrx                 302C
+//	timesrx                 3036
