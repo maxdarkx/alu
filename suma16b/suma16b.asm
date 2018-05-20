@@ -31,71 +31,70 @@
 		st r1,eb
 		not r1,r1 		; niego el exponente del segundo para la diferencia
 		add r1,r1,#1
-		add r1,r1,r0 	; calculo la diferencia
+		add r0,r1,r0 	; calculo la diferencia
 
-		st r1,diffe		; guardo la diferencia para futuras instancias
+		st r0,diffe		; guardo la diferencia para futuras instancias
 		ld r5,masc15	; mascara para sacar el bit 15 diffe(5)
-		and r5,r1,r5	; sacamos el bit 15
+		and r5,r0,r5	; sacamos el bit 15
 		
 		brz maxb		; branch para calculo del max
-		not r1,r1		; si el bit 15 es 1, niego diffe
-		add r1,r1,#1
-maxb	st r1, max
+		not r0,r0		; si el bit 15 es 1, niego diffe
+		add r0,r0,#1
+maxb	
+		and r1,r1,#0
+		add r1,r1,#10
+		jsr SHIFTR
+		st r0, max
+		add r1,r0,#0
 		st r5,diffe15	; guardo el bit 15 de diffe, importante mas adelante
 		add r6,r3,#0
 		ld r5, mascm	; cargo la mascara para la mantisa
 		and r0,r6,r5	; saco la mantisa de na, guardo en r1
 		ld r5, mascb11	; cargo la mascara para el bit 11
 		add r0,r5,r0	; agrego el bit adicional a la mantisa de NA
-		add r3,r0,#0
+		add r2,r0,#0	; por si acaso no hay corrimiento
+		and r3,r3,#0
 		st r0,ma 		;guardo la mantisa de a('1'& mantisa(na) )
 		ld r5,diffe15	; segun el bit de diffe(5), calculo el desplazamiento a la izquierda
 		brz na_shifting	; segun el bit 15 de diffe, corro la mantisa max veces hacia la izquierda
 
-	;se debe mejorar el algoritmo SHIFTR para que permita mover a traves de dos variables, tal como
-	;lo hace el algoritmo SHIFTLX
-	;______________________________________________________________________________________
-
-
-		jsr SHIFTR		; corro hacia la izquierda max veces la mantisa
+		jsr SHIFTRX		; corro hacia la izquierda max veces la mantisa
 						;r1 dato, r2 corrimientos, r3 y r0 solucion
-	;______________________________________________________________________________________
-
 na_shifting	
-		st r3,aa1
-		st r0,aa2
+		st r2,aa1
+		st r3,aa2
 
 		ld r5, mascm	; cargo la mascara para la mantisa
-		and r1,r4,r5	; saco la mantisa de n2, guardo en r1
+		and r0,r4,r5	; saco la mantisa de n2, guardo en r1
 		ld r5, mascb11	; cargo la mascara para el bit 11
-		add r1,r5,r1	; agrego el bit adicional a la mantisa de NA
-		add r3,r1,#0
-		st r1,mb 		; guardo la mantisa de nb
-		and r0,r0,#0
+		add r0,r5,r0	; agrego el bit adicional a la mantisa de NB
+		st r0,mb 		; guardo la mantisa de nb
+		add r2,r0,#0
+		and r3,r3,#0
 		ld r5,diffe15	; cargo el bit 15 de diffe, para el branch
 		brp nb_shifting	; segun el bit 15 de diffe, corro la mantisa max veces hacia la izquierda
-			jsr SHIFTR		; corro hacia la izquierda max veces la mantisa
+			jsr SHIFTRX		; corro hacia la izquierda max veces la mantisa
 
-nb_shifting	st r3,ab1
-			st r0,ab2
+nb_shifting	st r2,ab1
+			st r3,ab2
 
-			ld r1,aa1
-			ld r2,aa2
+			ld r0,aa1
+			ld r1,aa2
 
 			ld r4, diffe15 ;saco todas las variables necesarias para el if
 			ld r6,diffe
-			ld r5,stt	; si el signo de la xor es positivo salta a sum1(suma de dos numeros de igual signo)
+			ld r5,stt	; si el signo de la xor es cero salta a sum1(suma de dos numeros de igual signo)
 			brz sum1
 
 				not r3,r3
 				add r3,r3,#1
-				not r0,r0
-				add r0,r0,#1
-				add r2,r2,r0 	;aa2-ab2
-				add r1,r1,r3 	;aa1-ab1
+				not r2,r2
+				add r2,r2,#1
+				add r0,r0,r2 	;aa1-ab1
+				add r1,r1,r3 	;aa2-ab2
 				lea r4, sum
-				str r1,r4,#0
-				str r2,r4,#1
+				str r0,r4,#0
+				str r1,r4,#1
 
 				ld r4, diffe15
 				add r6,r6,#0	
@@ -103,29 +102,42 @@ nb_shifting	st r3,ab1
 					add r4,r4,#0
 					brz sum2
 
-case_diffe1				not r1,r1
+case_diffe1				ld r2,ab1 ;cargo nuevamente los datos de aa y ab
+						ld r3,ab2
+						ld r0,aa1
+						ld r1,aa2
+						
+						not r0,r0
+						add r0,r0,#1
+						not r1,r1
 						add r1,r1,#1
-						not r2,r2
-						add r2,r2,#1
-						add r2,r2,r0 	;ab2-aa2
-						add r1,r1,r3 	;ab1-aa1
+						add r0,r2,r0 	;ab1-aa1
+						add r1,r1,r3 	;ab2-aa2
 						lea r4, sum
-						str r1,r4,#0
-						str r2,r4,#1
+						str r0,r4,#0
+						str r1,r4,#1
 				brnzp sum2
 					
-sum1		add r1,r1,r3 ;calculo sum en sus dos partes 
-			st r1, sum 	;aa1+ab1 primera parte de sum
-
-			add r2,r2,r0 	;aa2+ab2 (mas significativa)
-			lea r0,sum
-			str r3,r0,#1 ;segunda parte de sum
-
+sum1		ld r2,ab1 ;cargo nuevamente los datos de aa y ab
+			ld r3,ab2
+			ld r0,aa1
+			ld r1,aa2
+			
+			add r0,r0,r2 ;calculo sum en sus dos partes 			
+			add r1,r1,r3
+			lea r4,sum
+			str r0,r4,#0
+			str r1,r4,#1
+			
 			ld r5, mascb12
-			and r0,r3,r5
+			and r2,r0,r5
 			brz case2		;cero indica no overflow, 1 indica overflow
 				ld r4,mascb11 	;r4 sera ac=1 para el esquema
-				st r2,mr 		;verificar si hay que correrla a la izquierda
+				
+				not r5,r5
+				add r5,r5,#1
+				add r0,r0,r5	;quito el bit12 de la mantisa
+				st r0,mr 		
 				BRnzp case3			
 
 case2		ld r1, sum
@@ -141,6 +153,15 @@ case3		ld r5,diffe15
 			BRnzp ets
 case4		ld r0,eb
 ets 		add r0,r0,r4
+
+
+;______________________________________________________________________________________
+	AQUI VOY
+;______________________________________________________________________________________
+
+
+
+
 			st r0,et
 			brnzp exit
 sum2	lea r6,sum;recorro cada posicion de sum para verificar desde donde empieza el dato
@@ -384,5 +405,83 @@ RET
 			guarlx4 .BLKW 1
 			guarlx5 .BLKW 1
 			guarlx6 .BLKW 1
+
+
+
+;_____________________________________________________________________
+
+;________________________________SHIFTRX_________________________________
+		; Funcion para mover cadenas de 11 bits hacia la derecha
+		; con carry de 11 bits
+		; se recibe en r0 el dato a mover y en r1 
+		; el numero de posiciones a desplazar
+		; se da la respuesta en r2 (solucion) y r3 (carry), 
+
+SHIFTRX	st r0, numrx
+		st r1, timesrx
+		and r2,r2,#0 ;solucion al problema(cociente entre 2)
+		and r3,r3,#0
+		lea r3,numrx
+		str r4,r3,#1 ;guardo los datos para usar los registros libremente
+		str r5,r3,#2
+		str r6,r3,#3
+
+		and r4,r4,#0
+		and r3,r3,#0
+		ld r5,mascb1
+		
+
+
+shiftrx_op  and r6,r0,r5
+			brz bitmov
+			ld r5,mascb12
+			add r4,r4,r5
+			ld r5,mascb1
+bitmov		add r3,r0,#0	; se guarda en r2 el valor actual para verificar si ya terminé
+			add r3,r3,#-1
+			brnz steprx 		; se le resta -1 y si es negativo o cero ya termine
+
+			add r2,r2,#1
+			add r0,r0,#-2
+			brp bitmov		; si el numero almacenado es mayor que cero, volver a dividir 
+							; entre diez
+							; se debe realizar las operaciones anteriores tantas veces
+steprx		
+
+			add r4,r4,#0
+			brz carry
+			and r6,r6,#0
+carry_mov	add r6,r6,#1
+			add r4,r4,#-2
+			brp carry_mov
+
+carry		add r4,r6,#0	; r4 contiene el carry movido a la derecha
+			add r0,r2,#0	;r0 continene el elemento corrido a la derecha
+			and r2,r2,#0
+			add r1,r1,#-1	
+			brp shiftrx_op
+
+
+			ld r1,timesrx
+			add r2,r0,#0
+			add r3,r4,#0
+
+
+			ld r0,numrx
+			lea r6,numrx
+			ldr r4,r6,#1
+			ldr r5,r6,#2
+			ldr r6,r6,#3
+			ret
+
+
+		numrx .blkw 4 ;
+		timesrx .blkw 1;
+		mascb1 .fill x0001;
+		
+		;mascb11 .fill x0400	;0000010000000000 mascara para el bit 11
+		;mascb12 .fill x0800	;0000100000000000 mascara para el bit 12
+
+;_____________________________________________________________________		
 .end
 ;_____________________________________________________________________

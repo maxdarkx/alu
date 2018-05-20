@@ -4,12 +4,12 @@
 //	bitmov                  3017
 //	carry                   3023
 //	carry_mov               3020
-//	mascb1                  3037
-//	mascb11                 3038
-//	mascb12                 3039
+//	mascb1                  3036
+//	mascb11                 3037
+//	mascb12                 3038
 //	num                     3005
 //	numrx                   3031
 //	shiftrx_op              3012
 //	steprx                  301D
 //	times                   3006
-//	timesrx                 3036
+//	timesrx                 3035
