@@ -206,7 +206,34 @@ listo 	add r2,r1,#0
 	    add r2,r2,r0
 	    st r2,mr
 
-exit 	ld r1,diffe 	;se calcula el signo de la operacion
+exit 	ld r1,diffe15
+		brz expB
+		ld r1,despl		;le resto despl al exponente 
+		and r0,r0,#0
+		and r2,r2,#0
+		add r2,r2,#10
+		jsr SHIFTL
+		ld r1,ea
+		not r0,r0
+		add r0,r0,#1
+		add r1,r1,r0
+
+		st r1,et
+		BRnzp signo
+
+expB	ld r1,despl		;le resto despl al exponente 
+		and r0,r0,#0
+		and r2,r2,#0
+		add r2,r2,#10
+		jsr SHIFTL
+		ld r1,eb
+		not r0,r0
+		add r0,r0,#1
+		add r1,r1,r0
+
+		st r1,et
+
+signo ld r1,diffe 	;se calcula el signo de la operacion
 		brz diffe_s0
 
 		ld r2,diffe15
