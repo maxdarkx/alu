@@ -133,10 +133,13 @@ sum1		ld r2,ab1 ;cargo nuevamente los datos de aa y ab
 			and r2,r0,r5
 			brz case2		;cero indica no overflow, 1 indica overflow
 				ld r4,mascb11 	;r4 sera ac=1 para el esquema
-				
+				and r1,r1,#0
+				add r1,r1,#1
 				not r5,r5
 				add r5,r5,#1
 				add r0,r0,r5	;quito el bit12 de la mantisa
+				jsr SHIFTR
+
 				st r0,mr 		
 				BRnzp case3			
 
@@ -149,14 +152,14 @@ case2		ld r1, sum
 			st r3,mr
 case3		ld r5,diffe15
 			brz case4
-			ld r0,ea
+			ld r0,eb
 			BRnzp ets
-case4		ld r0,eb
+case4		ld r0,ea
 ets 		add r0,r0,r4
 
 
 ;______________________________________________________________________________________
-	AQUI VOY
+;	AQUI VOY
 ;______________________________________________________________________________________
 
 
@@ -164,7 +167,7 @@ ets 		add r0,r0,r4
 
 			st r0,et
 			brnzp exit
-sum2	lea r6,sum;recorro cada posicion de sum para verificar desde donde empieza el dato
+sum2	lea r6,sum 		;recorro cada posicion de sum para verificar desde donde empieza el dato
 		ldr r1,r6,#0	;r1 es la primera parte de la suma
 		and r2,r2,#0
 		add r2,r2,#1	;cuantas veces se desplazara a la izquierda
@@ -208,36 +211,30 @@ listo 	add r2,r1,#0
 	    add r2,r2,r0
 	    st r2,mr
 
-exit  ld r1,mr 		;le quito el bit 11 a mr
-	  ld r2,mascb11
-	  not r2,r2
-	  add r2,r2,#1
-	  add r1,r2,r1
-	  st r1,mr
-
-	  ld r1,diffe15
-	  brz expmenos
-	  	ld r1,eb		;le resto los desplazamientos al exponente correspondiente
-	  	ld r2 despl 	; y lo guardo en et
-	  	not r2,r2
-	  	add r2,r2,#1
-	  	add r1,r1,r2
-	  	brnzp fin_sr
-expmenos 
-		ld r1,ea 		
-	  	ld r2 despl
-	  	not r2,r2
-	  	add r2,r2,#1
-	  	add r1,r1,r2
+exit  
+;ld r1,diffe15
+;	  brz expmenos
+;	  	ld r1,eb		;le resto los desplazamientos al exponente correspondiente
+;	  	ld r2 despl 	; y lo guardo en et
+;	  	not r2,r2
+;	  	add r2,r2,#1
+;	  	add r1,r1,r2
+;	  	brnzp fin_sr
+;expmenos 
+;		ld r1,ea 		
+;	  	ld r2 despl
+;	  	not r2,r2
+;	  	add r2,r2,#1
+;	  	add r1,r1,r2
 	  	
-fin_sr  st r1,et
+;fin_sr  st r1,et
 
 
 halt
 ;espacios reservados en memoria y constantes utilizadas
 ;________________________________________________________________________
 	na .fill x51A0 ; 159=0101100011111000 = x58F8 primer numero
-	nb .fill x4F40 ; 4 = 0100010000000000 = x4400 segundo numero
+	nb .fill xCF40 ; 4 = 0100010000000000 = x4400 segundo numero
 	sa .blkw 1 		;signo del primer numero
 	sb .BLKW 1		;signo del segundo numero
 	ea .blkw 1 		;exponente del primer numero
