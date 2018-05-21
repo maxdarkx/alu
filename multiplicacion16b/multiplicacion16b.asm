@@ -3,10 +3,32 @@
 ;-----------------Multtiplicacion de 16 bits-------------------------
 ;los operandos se encontraran en r1 y r2
 ;en r0 se pondra el resultado final de la operacion
-;
+;copiar y pegar todo este codigo en donde se necesite llamar a la funcion
 ;	
 ;
 .orig x3000
+
+
+
+	ld r1,nax
+	ld r2,nbx
+	jsr MULT16B
+	halt
+	nax .fill x58F8 ; 159=0101100011111000 = x58F8
+	nbx .fill x4400 ; 4 = 0100010000000000 = x4400
+
+
+
+MULT16B	st r1,na
+		st r2,nb
+		
+		lea r0,datos_previos
+		str r3,r0,#0
+		str r4,r0,#1
+		str r5,r0,#2
+		str r6,r0,#3
+		str r7,r0,#4
+		
 		and r0,r0,#0
 		and r1,r1,#0
 		and r2,r2,#0
@@ -88,12 +110,20 @@ result1		st r3, mant 	;guardo el resultado de la mantisa en mant
 		add r0,r0,r2
 		add r0,r0,r3
 
-	halt
+		ld r1,na
+		ld r2,nb
+		lea r6,datos_previos
+		ldr r3,r6,#0
+		ldr r4,r6,#1
+		ldr r5,r6,#2
+		ldr r7,r6,#4
+		ldr r6,r6,#3
+		RET
 ;
 ;espacios reservados en memoria y constantes utilizadas
 ;________________________________________________________________________
-	na .fill x58F8 ; 159=0101100011111000 = x58F8
-	nb .fill x4400 ; 4 = 0100010000000000 = x4400
+	na .blkw 1 ; 159=0101100011111000 = x58F8
+	nb .blkw 1 ; 4 = 0100010000000000 = x4400
 	stt .blkw 1
 	es  .blkw 1
 	mascs .fill x8000	;1000000000000000 mascara para el signo
@@ -102,6 +132,7 @@ result1		st r3, mant 	;guardo el resultado de la mantisa en mant
 	mascb22 .fill x0400	;0000010000000000 mascara para el bit 22
 	bias  .fill x3c00 	;0011110000000000 bias
 	mant  .blkw 1
+	datos_previos .blkw 5
 ;_________________________________________________________________________
 ;
 ;_______________________________funciones______________________________
