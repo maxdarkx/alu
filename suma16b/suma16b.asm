@@ -201,25 +201,34 @@ listo 	add r2,r1,#0
 	    add r2,r2,r0
 	    st r2,mr
 
-exit  
-;ld r1,diffe15
-;	  brz expmenos
-;	  	ld r1,eb		;le resto los desplazamientos al exponente correspondiente
-;	  	ld r2 despl 	; y lo guardo en et
-;	  	not r2,r2
-;	  	add r2,r2,#1
-;	  	add r1,r1,r2
-;	  	brnzp fin_sr
-;expmenos 
-;		ld r1,ea 		
-;	  	ld r2 despl
-;	  	not r2,r2
-;	  	add r2,r2,#1
-;	  	add r1,r1,r2
-	  	
-;fin_sr  st r1,et
+exit 	ld r1,diffe 	;se calcula el signo de la operacion
+		brz diffe_s0
 
+		ld r2,diffe15
+		brz diffe15_s0
 
+		ld r4,sb
+		BRnzp ext_sign
+diffe15_s0
+		ld r4,sa
+		
+		BRnzp ext_sign
+
+diffe_s0 ld r3,stt
+		 brz s_xor
+
+		ld r4,aa1
+		ld r5,ab1
+		add r0,r4,r5
+		brzp aa_mayor
+
+		 ld r4,sb
+
+		 BRnzp ext_sign
+aa_mayor ld r4,sa
+		 BRnzp ext_sign
+s_xor 	ld r4,sa
+ext_sign st r4,sr
 halt
 ;espacios reservados en memoria y constantes utilizadas
 ;________________________________________________________________________
@@ -242,6 +251,7 @@ halt
 	mant  .blkw 1		;mantisa del resultado
 	mr .blkw 1			;MR mantisa temporal, hay que ajustarla
 	et .blkw 1			;exponente total
+	sr .blkw 1			;signo final
 	despl .blkw 1		;cantidad de desplazamientos hechos a la 
 						;izquierda en la suma de mantisas (max 22)
 	diffe  .blkw 1 		;espacio para la diferencia entre exponentes
