@@ -139,7 +139,8 @@ sum1		ld r2,ab1 ;cargo nuevamente los datos de aa y ab
 				add r5,r5,#1
 				add r0,r0,r5	;quito el bit12 de la mantisa
 				jsr SHIFTR
-
+				ld r6,mascm
+				and r0,r0,r6
 				st r0,mr 		
 				BRnzp case3			
 
@@ -165,6 +166,8 @@ sum2	lea r6,sum 		;recorro cada posicion de sum para verificar desde donde empie
 		and r4,r4,#0	;cuantas veces he ejecutado corrimientos?
 
 		ld r5,mascb11
+		and r0,r0,r5	;si hay un 1, me salgo del algoritmo
+		brp listo		
 busca1	jsr SHIFTL 
 		add r1,r0,#0	;guardo en r1 la salida del algoritmo para loop
 		add r4,r4,#1	;cuantas veces he realizado corrimientos?
@@ -186,6 +189,8 @@ busca2a jsr SHIFTL
 		and r0,r0,r5	;si hay un 1, me salgo del algoritmo
 		brz busca2a
 		st r4,despl
+		ld r6,mascm
+		and r1,r1,r6
 		st r1, mr
 		brnzp exit
 
@@ -232,8 +237,8 @@ ext_sign st r4,sr
 halt
 ;espacios reservados en memoria y constantes utilizadas
 ;________________________________________________________________________
-	na .fill x5CF4 ; 159=0101100011111000 = x58F8 primer numero
-	nb .fill x4C00 ; 4 = 0100010000000000 = x4400 segundo numero
+	na .fill xD060 ; 159=0101100011111000 = x58F8 primer numero
+	nb .fill x5640 ; 4 = 0100010000000000 = x4400 segundo numero
 	sa .blkw 1 		;signo del primer numero
 	sb .BLKW 1		;signo del segundo numero
 	ea .blkw 1 		;exponente del primer numero
