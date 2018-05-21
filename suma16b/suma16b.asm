@@ -49,7 +49,7 @@ maxb
 		st r5,diffe15	; guardo el bit 15 de diffe, importante mas adelante
 		add r6,r3,#0
 		ld r5, mascm	; cargo la mascara para la mantisa
-		and r0,r6,r5	; saco la mantisa de na, guardo en r1
+		and r0,r6,r5	; saco la mantisa de na, guardo en r0
 		ld r5, mascb11	; cargo la mascara para el bit 11
 		add r0,r5,r0	; agrego el bit adicional a la mantisa de NA
 		add r2,r0,#0	; por si acaso no hay corrimiento
@@ -58,7 +58,7 @@ maxb
 		ld r5,diffe15	; segun el bit de diffe(5), calculo el desplazamiento a la izquierda
 		brz na_shifting	; segun el bit 15 de diffe, corro la mantisa max veces hacia la izquierda
 
-		jsr SHIFTRX		; corro hacia la izquierda max veces la mantisa
+		jsr SHIFTRX		; corro hacia la derecha max veces la mantisa
 						;r1 dato, r2 corrimientos, r3 y r0 solucion
 na_shifting	
 		st r2,aa1
@@ -145,25 +145,15 @@ sum1		ld r2,ab1 ;cargo nuevamente los datos de aa y ab
 
 case2		ld r1, sum
 			and r4,r4,#0 	;r4 sera ac=0 para el esquema
-			and r2,r2,#0
-			add r2,r2,#1
-			 		
-			jsr SHIFTLX ;mover la suma a la izquierda una vez
-			st r3,mr
+			ld r5,mascm 		
+			and r1,r1,r5
+			st r1,mr
 case3		ld r5,diffe15
 			brz case4
 			ld r0,eb
 			BRnzp ets
 case4		ld r0,ea
 ets 		add r0,r0,r4
-
-
-;______________________________________________________________________________________
-;	AQUI VOY
-;______________________________________________________________________________________
-
-
-
 
 			st r0,et
 			brnzp exit
@@ -182,7 +172,7 @@ busca1	jsr SHIFTL
 		brz busca2
 		and r0,r0,r5	;si hay un 1, me salgo del algoritmo
 		brz busca1
-		st r4,despl
+		st r4,despl 	
 		brp listo
 
 busca2	add r1,r3,#0
@@ -233,8 +223,8 @@ exit
 halt
 ;espacios reservados en memoria y constantes utilizadas
 ;________________________________________________________________________
-	na .fill x51A0 ; 159=0101100011111000 = x58F8 primer numero
-	nb .fill xCF40 ; 4 = 0100010000000000 = x4400 segundo numero
+	na .fill x5CF4 ; 159=0101100011111000 = x58F8 primer numero
+	nb .fill x4C00 ; 4 = 0100010000000000 = x4400 segundo numero
 	sa .blkw 1 		;signo del primer numero
 	sb .BLKW 1		;signo del segundo numero
 	ea .blkw 1 		;exponente del primer numero
@@ -427,8 +417,8 @@ SHIFTRX	st r0, numrx
 		and r3,r3,#0
 		ld r5,mascb1
 		
-
-
+			add r1,r1,#0
+			brz cero
 shiftrx_op  and r6,r0,r5
 			brz bitmov
 			ld r5,mascb12
@@ -459,7 +449,7 @@ carry		add r4,r6,#0	; r4 contiene el carry movido a la derecha
 			brp shiftrx_op
 
 
-			ld r1,timesrx
+cero		ld r1,timesrx
 			add r2,r0,#0
 			add r3,r4,#0
 
